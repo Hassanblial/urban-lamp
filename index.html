@@ -1,0 +1,959 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SELIFE — Code to App</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #080810;
+    --surface: #0f0f1e;
+    --border: #1e1e3a;
+    --accent: #00ff88;
+    --accent2: #7c3aed;
+    --accent3: #ff3366;
+    --text: #e8e8ff;
+    --muted: #6b6b9a;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Space Mono', monospace;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Background grid */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(0,255,136,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,255,136,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .glow-orb {
+    position: fixed;
+    width: 600px;
+    height: 600px;
+    border-radius: 50%;
+    filter: blur(120px);
+    pointer-events: none;
+    z-index: 0;
+  }
+  .orb1 { background: rgba(0,255,136,0.08); top: -200px; right: -200px; }
+  .orb2 { background: rgba(124,58,237,0.08); bottom: -200px; left: -200px; }
+
+  .container {
+    position: relative;
+    z-index: 1;
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 40px 20px;
+  }
+
+  /* Header */
+  header {
+    text-align: center;
+    margin-bottom: 50px;
+    animation: fadeDown 0.8s ease;
+  }
+
+  .logo {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(48px, 10vw, 80px);
+    font-weight: 800;
+    letter-spacing: -2px;
+    background: linear-gradient(135deg, var(--accent) 0%, #00ccff 50%, var(--accent2) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    line-height: 1;
+  }
+
+  .tagline {
+    color: var(--muted);
+    font-size: 13px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    margin-top: 12px;
+  }
+
+  .badge-row {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    margin-top: 20px;
+    flex-wrap: wrap;
+  }
+
+  .badge {
+    background: rgba(0,255,136,0.08);
+    border: 1px solid rgba(0,255,136,0.2);
+    color: var(--accent);
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 11px;
+    letter-spacing: 1px;
+  }
+
+  /* Steps */
+  .steps {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-bottom: 40px;
+    animation: fadeUp 0.8s ease 0.2s both;
+  }
+
+  .step {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 20px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .step::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--accent2), var(--accent));
+  }
+
+  .step-num {
+    font-family: 'Syne', sans-serif;
+    font-size: 32px;
+    font-weight: 800;
+    color: var(--accent);
+    opacity: 0.3;
+  }
+
+  .step-label {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 4px;
+  }
+
+  /* Main Card */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    padding: 32px;
+    animation: fadeUp 0.8s ease 0.4s both;
+  }
+
+  .field-label {
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 10px;
+  }
+
+  .field-label span {
+    color: var(--accent);
+  }
+
+  input[type="text"], textarea, select {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    color: var(--text);
+    font-family: 'Space Mono', monospace;
+    font-size: 13px;
+    padding: 14px 16px;
+    outline: none;
+    transition: border-color 0.3s;
+    resize: none;
+  }
+
+  input[type="text"]:focus, textarea:focus, select:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(0,255,136,0.08);
+  }
+
+  select option { background: var(--bg); }
+
+  textarea { height: 220px; line-height: 1.6; }
+
+  .field-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+
+  .field-group { margin-bottom: 20px; }
+
+  /* Icon Upload */
+  .icon-upload {
+    border: 2px dashed var(--border);
+    border-radius: 12px;
+    padding: 24px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s;
+    position: relative;
+  }
+
+  .icon-upload:hover {
+    border-color: var(--accent);
+    background: rgba(0,255,136,0.04);
+  }
+
+  .icon-upload input { display: none; }
+
+  .icon-preview {
+    width: 60px;
+    height: 60px;
+    border-radius: 14px;
+    object-fit: cover;
+    margin: 0 auto 8px;
+    display: none;
+  }
+
+  .upload-icon { font-size: 28px; margin-bottom: 8px; }
+  .upload-text { font-size: 12px; color: var(--muted); }
+
+  /* Security toggles */
+  .security-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    margin-bottom: 24px;
+  }
+
+  .toggle-item {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    transition: all 0.2s;
+    user-select: none;
+  }
+
+  .toggle-item.active {
+    border-color: var(--accent);
+    background: rgba(0,255,136,0.06);
+  }
+
+  .toggle-dot {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    border: 2px solid var(--border);
+    transition: all 0.2s;
+    flex-shrink: 0;
+  }
+
+  .toggle-item.active .toggle-dot {
+    background: var(--accent);
+    border-color: var(--accent);
+    box-shadow: 0 0 8px var(--accent);
+  }
+
+  .toggle-text { font-size: 11px; color: var(--muted); }
+  .toggle-item.active .toggle-text { color: var(--text); }
+
+  /* Generate Button */
+  .btn-generate {
+    width: 100%;
+    background: linear-gradient(135deg, var(--accent), #00ccff);
+    border: none;
+    border-radius: 14px;
+    color: #000;
+    font-family: 'Syne', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    padding: 18px;
+    cursor: pointer;
+    transition: all 0.3s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .btn-generate:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 16px 40px rgba(0,255,136,0.3);
+  }
+
+  .btn-generate:active { transform: translateY(0); }
+
+  .btn-generate:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  /* Progress */
+  .progress-bar {
+    width: 100%;
+    height: 3px;
+    background: var(--border);
+    border-radius: 2px;
+    margin-top: 16px;
+    display: none;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), #00ccff);
+    border-radius: 2px;
+    width: 0%;
+    transition: width 0.5s ease;
+  }
+
+  /* Result */
+  .result {
+    display: none;
+    margin-top: 24px;
+    background: rgba(0,255,136,0.06);
+    border: 1px solid rgba(0,255,136,0.2);
+    border-radius: 16px;
+    padding: 24px;
+    animation: fadeUp 0.5s ease;
+  }
+
+  .result-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--accent);
+    margin-bottom: 16px;
+  }
+
+  .result-info {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+
+  .info-box {
+    background: var(--bg);
+    border-radius: 10px;
+    padding: 12px;
+    text-align: center;
+  }
+
+  .info-val {
+    font-family: 'Syne', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--accent);
+  }
+
+  .info-key {
+    font-size: 10px;
+    color: var(--muted);
+    margin-top: 2px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .btn-install {
+    width: 100%;
+    background: var(--accent);
+    border: none;
+    border-radius: 12px;
+    color: #000;
+    font-family: 'Syne', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    padding: 16px;
+    cursor: pointer;
+    transition: all 0.3s;
+    margin-bottom: 10px;
+  }
+
+  .btn-install:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 30px rgba(0,255,136,0.3);
+  }
+
+  .btn-download {
+    width: 100%;
+    background: transparent;
+    border: 1px solid var(--accent);
+    border-radius: 12px;
+    color: var(--accent);
+    font-family: 'Space Mono', monospace;
+    font-size: 13px;
+    padding: 14px;
+    cursor: pointer;
+    transition: all 0.3s;
+  }
+
+  .btn-download:hover { background: rgba(0,255,136,0.08); }
+
+  /* Install Tip */
+  .install-tip {
+    display: none;
+    margin-top: 16px;
+    background: rgba(124,58,237,0.1);
+    border: 1px solid rgba(124,58,237,0.3);
+    border-radius: 12px;
+    padding: 16px;
+    font-size: 12px;
+    color: var(--text);
+    line-height: 1.8;
+  }
+
+  /* Divider */
+  .divider {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 24px 0;
+  }
+
+  .section-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 14px;
+  }
+
+  /* Status log */
+  .status-log {
+    display: none;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+    margin-top: 16px;
+    font-size: 12px;
+    color: var(--accent);
+    max-height: 120px;
+    overflow-y: auto;
+    line-height: 2;
+  }
+
+  /* Animations */
+  @keyframes fadeDown {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Responsive */
+  @media (max-width: 600px) {
+    .steps { grid-template-columns: 1fr; }
+    .field-row { grid-template-columns: 1fr; }
+    .result-info { grid-template-columns: 1fr; }
+    .security-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="glow-orb orb1"></div>
+<div class="glow-orb orb2"></div>
+
+<div class="container">
+
+  <!-- Header -->
+  <header>
+    <div class="logo">SELIFE</div>
+    <div class="tagline">Code → Real App · Instant · Free</div>
+    <div class="badge-row">
+      <span class="badge">✦ No ZIP</span>
+      <span class="badge">✦ No Server</span>
+      <span class="badge">✦ Real App</span>
+      <span class="badge">✦ Protected</span>
+    </div>
+  </header>
+
+  <!-- Steps -->
+  <div class="steps">
+    <div class="step">
+      <div class="step-num">01</div>
+      <div class="step-label">Paste your code</div>
+    </div>
+    <div class="step">
+      <div class="step-num">02</div>
+      <div class="step-label">Set name & icon</div>
+    </div>
+    <div class="step">
+      <div class="step-num">03</div>
+      <div class="step-label">Install as app</div>
+    </div>
+  </div>
+
+  <!-- Main Card -->
+  <div class="card">
+
+    <!-- App Name + Type -->
+    <div class="field-row">
+      <div class="field-group">
+        <div class="field-label">App Name <span>*</span></div>
+        <input type="text" id="appName" placeholder="My Awesome App" maxlength="40">
+      </div>
+      <div class="field-group">
+        <div class="field-label">Theme Color</div>
+        <input type="color" id="themeColor" value="#00ff88" style="width:100%;height:48px;border-radius:12px;border:1px solid var(--border);background:var(--bg);cursor:pointer;padding:4px;">
+      </div>
+    </div>
+
+    <!-- Code Input -->
+    <div class="field-group">
+      <div class="field-label">Your Code <span>*</span></div>
+      <textarea id="codeInput" placeholder="Paste your HTML, CSS, JavaScript code here...
+
+Example:
+<!DOCTYPE html>
+<html>
+<body>
+  <h1>Hello World!</h1>
+</body>
+</html>"></textarea>
+    </div>
+
+    <!-- Icon Upload -->
+    <div class="field-group">
+      <div class="field-label">App Icon</div>
+      <label class="icon-upload" id="iconLabel">
+        <input type="file" id="iconInput" accept="image/*" onchange="handleIcon(this)">
+        <img class="icon-preview" id="iconPreview">
+        <div class="upload-icon" id="uploadIcon">🖼️</div>
+        <div class="upload-text" id="uploadText">Click to upload icon (PNG, JPG)<br>Recommended: 512×512px</div>
+      </label>
+    </div>
+
+    <hr class="divider">
+
+    <!-- Security Features -->
+    <div class="section-title">🔒 Security Features</div>
+    <div class="security-grid">
+      <div class="toggle-item active" onclick="toggleSec(this)" data-key="antiDevtools">
+        <div class="toggle-dot"></div>
+        <div class="toggle-text">Anti DevTools</div>
+      </div>
+      <div class="toggle-item active" onclick="toggleSec(this)" data-key="rightClick">
+        <div class="toggle-dot"></div>
+        <div class="toggle-text">Disable Right Click</div>
+      </div>
+      <div class="toggle-item active" onclick="toggleSec(this)" data-key="noSelect">
+        <div class="toggle-dot"></div>
+        <div class="toggle-text">Disable Text Select</div>
+      </div>
+      <div class="toggle-item active" onclick="toggleSec(this)" data-key="noSource">
+        <div class="toggle-dot"></div>
+        <div class="toggle-text">Block View Source</div>
+      </div>
+    </div>
+
+    <!-- Generate Button -->
+    <button class="btn-generate" id="generateBtn" onclick="generateApp()">
+      ⚡ CREATE APP
+    </button>
+
+    <!-- Progress -->
+    <div class="progress-bar" id="progressBar">
+      <div class="progress-fill" id="progressFill"></div>
+    </div>
+
+    <!-- Status Log -->
+    <div class="status-log" id="statusLog"></div>
+
+    <!-- Result -->
+    <div class="result" id="result">
+      <div class="result-title">✅ App Created Successfully!</div>
+
+      <div class="result-info">
+        <div class="info-box">
+          <div class="info-val" id="resName">—</div>
+          <div class="info-key">App Name</div>
+        </div>
+        <div class="info-box">
+          <div class="info-val" id="resVersion">v1.0.0</div>
+          <div class="info-key">Version</div>
+        </div>
+        <div class="info-box">
+          <div class="info-val">PWA</div>
+          <div class="info-key">Type</div>
+        </div>
+      </div>
+
+      <button class="btn-install" id="installBtn" onclick="installApp()">
+        📱 Install App on This Device
+      </button>
+      <button class="btn-download" onclick="downloadApp()">
+        ⬇ Download as ZIP (for other devices)
+      </button>
+
+      <div class="install-tip" id="installTip">
+        📌 <strong>How to install on other devices:</strong><br>
+        1. Press <strong>Download ZIP</strong><br>
+        2. Go to <strong>netlify.com</strong> (free, no card)<br>
+        3. Drag & drop the ZIP folder<br>
+        4. Open the link in Chrome<br>
+        5. Tap <strong>Install / Add to Home Screen</strong> ✅
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<script>
+// ============================================
+// STATE
+// ============================================
+let securityOptions = {
+  antiDevtools: true,
+  rightClick: true,
+  noSelect: true,
+  noSource: true
+};
+
+let generatedZipBlob = null;
+let deferredPrompt = null;
+let generatedHTML = '';
+
+// ============================================
+// PWA INSTALL PROMPT
+// ============================================
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+});
+
+// ============================================
+// TOGGLE SECURITY
+// ============================================
+function toggleSec(el) {
+  el.classList.toggle('active');
+  const key = el.dataset.key;
+  securityOptions[key] = el.classList.contains('active');
+}
+
+// ============================================
+// ICON HANDLER
+// ============================================
+function handleIcon(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const preview = document.getElementById('iconPreview');
+    preview.src = e.target.result;
+    preview.style.display = 'block';
+    document.getElementById('uploadIcon').style.display = 'none';
+    document.getElementById('uploadText').textContent = file.name;
+  };
+  reader.readAsDataURL(file);
+}
+
+// ============================================
+// LOG
+// ============================================
+function log(msg) {
+  const el = document.getElementById('statusLog');
+  el.style.display = 'block';
+  el.innerHTML += `> ${msg}<br>`;
+  el.scrollTop = el.scrollHeight;
+}
+
+function setProgress(pct) {
+  document.getElementById('progressFill').style.width = pct + '%';
+}
+
+// ============================================
+// BUILD SECURITY SCRIPT
+// ============================================
+function buildSecurity() {
+  let s = '<script>\n(function(){\n';
+  if (securityOptions.rightClick)
+    s += "  document.addEventListener('contextmenu',e=>e.preventDefault());\n";
+  if (securityOptions.noSelect)
+    s += "  document.addEventListener('selectstart',e=>e.preventDefault());\n";
+  if (securityOptions.noSource)
+    s += "  document.addEventListener('keydown',function(e){\n    if(e.ctrlKey&&(e.key==='u'||e.key==='U'||e.key==='s'||e.key==='S'))e.preventDefault();\n    if(e.key==='F12')e.preventDefault();\n    if(e.ctrlKey&&e.shiftKey&&(e.key==='I'||e.key==='J'||e.key==='C'))e.preventDefault();\n  });\n";
+  if (securityOptions.antiDevtools)
+    s += "  setInterval(function(){var d=new Date();debugger;if(new Date()-d>100){document.body.innerHTML='<div style=\"display:flex;align-items:center;justify-content:center;height:100vh;background:#000;color:#ff3366;font-family:monospace;font-size:24px\">⛔ Access Denied</div>';}},1000);\n";
+  s += '})();\n<\/script>\n';
+  return s;
+}
+
+// ============================================
+// GENERATE APP
+// ============================================
+async function generateApp() {
+  const appName = document.getElementById('appName').value.trim();
+  const code = document.getElementById('codeInput').value.trim();
+  const themeColor = document.getElementById('themeColor').value;
+
+  if (!appName) { alert('Please enter App Name!'); return; }
+  if (!code || code.length < 10) { alert('Please paste your code!'); return; }
+
+  const btn = document.getElementById('generateBtn');
+  btn.disabled = true;
+  btn.textContent = '⚙️ Generating...';
+
+  document.getElementById('progressBar').style.display = 'block';
+  document.getElementById('statusLog').innerHTML = '';
+  document.getElementById('result').style.display = 'none';
+
+  log('Initializing...');
+  setProgress(10);
+  await sleep(300);
+
+  log('Processing code...');
+  setProgress(25);
+  await sleep(400);
+
+  // Build HTML
+  let html = code;
+  if (!html.toLowerCase().includes('<html')) {
+    html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>${escHtml(appName)}</title>
+<style>
+body{margin:0;padding:20px;font-family:Arial,sans-serif;background:#0f0f1e;color:#eee;}
+pre{background:#16213e;padding:15px;border-radius:10px;overflow-x:auto;color:#00ff88;}
+</style>
+</head>
+<body>
+<h2 style="color:#00ff88">${escHtml(appName)}</h2>
+<pre><code>${escHtml(code)}</code></pre>
+</body>
+</html>`;
+  }
+
+  // Inject manifest link + SW
+  const swScript = `
+<script>
+if('serviceWorker' in navigator){
+  window.addEventListener('load',()=>{
+    navigator.serviceWorker.register('./sw.js').catch(()=>{});
+  });
+}
+<\/script>`;
+
+  const manifestLink = `<link rel="manifest" href="./manifest.json">
+<meta name="theme-color" content="${themeColor}">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="apple-touch-icon" href="./icon-192.png">`;
+
+  html = html.replace('</head>', manifestLink + '\n</head>');
+  html = html.replace('</body>', swScript + buildSecurity() + '\n</body>');
+
+  generatedHTML = html;
+  log('Security features injected...');
+  setProgress(50);
+  await sleep(400);
+
+  // Generate icon
+  const iconDataURL = await generateIcon(appName, themeColor);
+
+  log('Building PWA manifest...');
+  setProgress(65);
+  await sleep(300);
+
+  // Manifest
+  const manifest = {
+    name: appName,
+    short_name: appName.slice(0, 12),
+    start_url: './index.html',
+    display: 'standalone',
+    background_color: '#0f0f1e',
+    theme_color: themeColor,
+    icons: [
+      { src: './icon-192.png', sizes: '192x192', type: 'image/png' },
+      { src: './icon-512.png', sizes: '512x512', type: 'image/png' }
+    ]
+  };
+
+  // Service Worker
+  const sw = `const CACHE='selife-v1';
+const FILES=['./','./index.html','./manifest.json','./icon-192.png','./icon-512.png'];
+self.addEventListener('install',e=>{e.waitUntil(caches.open(CACHE).then(c=>c.addAll(FILES)));self.skipWaiting();});
+self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(k=>Promise.all(k.filter(x=>x!==CACHE).map(x=>caches.delete(x)))));});
+self.addEventListener('fetch',e=>{e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request)));});`;
+
+  log('Creating ZIP package...');
+  setProgress(80);
+  await sleep(400);
+
+  // Build ZIP using JSZip
+  const JSZip = await loadJSZip();
+  const zip = new JSZip();
+  const folder = zip.folder(appName.replace(/\s+/g, '_'));
+
+  folder.file('index.html', html);
+  folder.file('manifest.json', JSON.stringify(manifest, null, 2));
+  folder.file('sw.js', sw);
+
+  // Convert icon to blob
+  const iconBlob192 = await dataURLtoBlob(iconDataURL, 192);
+  const iconBlob512 = await dataURLtoBlob(iconDataURL, 512);
+  folder.file('icon-192.png', iconBlob192);
+  folder.file('icon-512.png', iconBlob512);
+
+  generatedZipBlob = await zip.generateAsync({ type: 'blob' });
+
+  log('Done! App ready ✅');
+  setProgress(100);
+  await sleep(300);
+
+  // Show result
+  document.getElementById('resName').textContent = appName;
+  document.getElementById('result').style.display = 'block';
+  document.getElementById('installTip').style.display = 'block';
+
+  btn.disabled = false;
+  btn.textContent = '⚡ CREATE APP';
+
+  // Try install prompt
+  if (deferredPrompt) {
+    document.getElementById('installBtn').style.display = 'block';
+  } else {
+    document.getElementById('installBtn').textContent = '📱 How to Install on Phone';
+    document.getElementById('installBtn').onclick = () => {
+      document.getElementById('installTip').style.display =
+        document.getElementById('installTip').style.display === 'none' ? 'block' : 'none';
+    };
+  }
+}
+
+// ============================================
+// GENERATE ICON CANVAS
+// ============================================
+async function generateIcon(name, color) {
+  const uploadedSrc = document.getElementById('iconPreview').src;
+  if (uploadedSrc && document.getElementById('iconPreview').style.display !== 'none') {
+    return uploadedSrc;
+  }
+
+  const canvas = document.createElement('canvas');
+  canvas.width = 512; canvas.height = 512;
+  const ctx = canvas.getContext('2d');
+
+  // Background
+  const grad = ctx.createLinearGradient(0, 0, 512, 512);
+  grad.addColorStop(0, '#0f0f1e');
+  grad.addColorStop(1, '#1a1a2e');
+  ctx.fillStyle = grad;
+  ctx.roundRect(0, 0, 512, 512, 80);
+  ctx.fill();
+
+  // Circle
+  ctx.beginPath();
+  ctx.arc(256, 220, 120, 0, Math.PI * 2);
+  ctx.fillStyle = color + '22';
+  ctx.fill();
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 4;
+  ctx.stroke();
+
+  // Text
+  ctx.fillStyle = color;
+  ctx.font = 'bold 80px Arial';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(name.charAt(0).toUpperCase(), 256, 220);
+
+  ctx.fillStyle = '#ffffff88';
+  ctx.font = 'bold 28px Arial';
+  ctx.fillText(name.slice(0, 10).toUpperCase(), 256, 370);
+
+  return canvas.toDataURL('image/png');
+}
+
+// ============================================
+// HELPERS
+// ============================================
+async function dataURLtoBlob(dataURL, size) {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = size; canvas.height = size;
+      canvas.getContext('2d').drawImage(img, 0, 0, size, size);
+      canvas.toBlob(resolve, 'image/png');
+    };
+    img.src = dataURL;
+  });
+}
+
+async function loadJSZip() {
+  if (window.JSZip) return window.JSZip;
+  return new Promise((resolve, reject) => {
+    const s = document.createElement('script');
+    s.src = 'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js';
+    s.onload = () => resolve(window.JSZip);
+    s.onerror = reject;
+    document.head.appendChild(s);
+  });
+}
+
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+function escHtml(str) {
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ============================================
+// INSTALL
+// ============================================
+async function installApp() {
+  if (deferredPrompt) {
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    if (outcome === 'accepted') {
+      document.getElementById('installBtn').textContent = '✅ App Installed!';
+    }
+    deferredPrompt = null;
+  } else {
+    document.getElementById('installTip').style.display = 'block';
+  }
+}
+
+// ============================================
+// DOWNLOAD ZIP
+// ============================================
+function downloadApp() {
+  if (!generatedZipBlob) { alert('Generate app first!'); return; }
+  const appName = document.getElementById('appName').value.trim() || 'app';
+  const url = URL.createObjectURL(generatedZipBlob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `${appName.replace(/\s+/g,'_')}_v1.0.0.zip`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+</script>
+
+</body>
+</html>
